@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass-card p-5">
+                <h2 class="mb-4">📝 Content Generator</h2>
+
+                <form id="contentForm" class="mb-5">
+
+                    <label class="form-label fw-600">
+                        Enter Topic
+                    </label>
+
+                    <textarea
+                        name="topic"
+                        class="form-control"
+                        rows="5"
+                        required>
+                    </textarea>
+
+                    <br>
+
+                    <label class="form-label fw-600">
+                        Content Type
+                    </label>
+
+                    <select
+                        name="content_type"
+                        class="form-select">
+
+                        <option value="story">Story</option>
+                        <option value="essay">Essay</option>
+                        <option value="poem">Poem</option>
+                        <option value="speech">Speech</option>
+
+                    </select>
+
+                    <br>
+
+                    <button type="submit" class="btn btn-primary" id="generateBtn">
+                        ✨ Generate
+                    </button>
+
+                </form>
+
+                <div id="responseContainer" class="response-section" style="display: none;">
+                    <hr class="my-4">
+                    <h3 class="mb-4" style="color: #4d8eff;">💡 Generated Content</h3>
+                    
+                    <div class="response-card mb-4">
+                        <h6 class="mb-3" style="color: #adc6ff; font-weight: 600;">📝 Your Topic</h6>
+                        <div class="user-input-box" id="userInputDisplay"></div>
+                    </div>
+
+                    <div class="response-card mb-4">
+                        <h6 class="mb-3" style="color: #adc6ff; font-weight: 600;">✨ AI Generated Content</h6>
+                        <div class="result-text" id="responseDisplay"></div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row gap-3 align-items-start mb-4">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button name="feedback" value="Yes" type="button" class="btn btn-success" onclick="submitFeedback('Yes')">👍 Helpful</button>
+                            <button name="feedback" value="No" type="button" class="btn btn-danger" onclick="submitFeedback('No')">👎 Not Helpful</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="downloadBtn">
+                            📥 Download PDF
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="clearAndContinue()">
+                            🔄 Generate More Content
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('contentForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const topic = document.querySelector('textarea[name="topic"]').value;
+    const contentType = document.querySelector('select[name="content_type"]').value;
+    const btn = document.getElementById('generateBtn');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating...';
+
+    try {
+        const formData = new FormData();
+        formData.append('topic', topic);
+        formData.append('content_type', contentType);
+
+        const response = await fetch('/content', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate content');
+        }
+
+        const data = await response.json();
+
+        document.getElementById('userInputDisplay').textContent = data.user_input;
+        document.getElementById('responseDisplay').textContent = data.response;
+        document.getElementById('downloadBtn').onclick = () => downloadPDF(data.response);
+
+        document.getElementById('responseContainer').style.display = 'block';
+        document.getElementById('responseContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Generate';
+    }
+});
+
+function submitFeedback(value) {
+    const feature = 'Content Generator';
+    
+    const formData = new FormData();
+    formData.append('feature', feature);
+    formData.append('feedback', value);
+
+    fetch('/feedback', {
+        method: 'POST',
+        body: formData
+    }).then(() => {
+        alert('Thank you for your feedback!');
+    }).catch(error => {
+        alert('Error submitting feedback: ' + error.message);
+    });
+}
+
+function downloadPDF(responseText) {
+    const link = document.createElement('a');
+    link.href = '{{ url_for("download") }}?response=' + encodeURIComponent(responseText);
+    link.download = 'content.pdf';
+    link.click();
+}
+
+function clearAndContinue() {
+    document.querySelector('textarea[name="topic"]').value = '';
+    document.querySelector('select[name="content_type"]').value = 'story';
+    document.getElementById('responseContainer').style.display = 'none';
+    document.querySelector('textarea[name="topic"]').focus();
+}
+</script>
+
+{% endblock %}

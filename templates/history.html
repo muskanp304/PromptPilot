@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2>📊 Prompt History Dashboard</h2>
+
+    <table class="table table-bordered table-striped">
+
+        <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Module</th>
+
+                <th>Prompt</th>
+
+                <th>User Input</th>
+
+                <th>Timestamp</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for row in records %}
+
+            <tr>
+
+                <td>{{ row[0] }}</td>
+
+                <td>{{ row[1] }}</td>
+
+                <td>{{ row[2] }}</td>
+
+                <td>{{ row[3] }}</td>
+
+                <td>{{ row[4] }}</td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

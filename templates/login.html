@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container glass-card p-5 mx-auto" style="max-width: 520px;">
+
+    <h2 class="mb-4">🔐 Login</h2>
+
+    <form method="POST" action="/login">
+
+        <label class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required>
+
+        <br>
+
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+
+        <br>
+
+        <button class="btn btn-primary w-100">Login</button>
+
+    </form>
+
+    <p class="mt-4 text-center text-muted">
+        Don’t have an account? <a href="/register">Register here</a>
+    </p>
+
+</div>
+
+{% endblock %}

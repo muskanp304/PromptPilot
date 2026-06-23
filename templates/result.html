@@ -1,0 +1,37 @@
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass-card p-5">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-4 gap-3">
+                    <div>
+                        <h2 class="mb-2">AI Response</h2>
+                        <p class="text-muted mb-0">Your generated answer is shown below. You can save it as PDF or share feedback.</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="/" class="btn btn-outline-light btn-sm">Home</a>
+                        <a href="{{ request.referrer or '/' }}" class="btn btn-outline-light btn-sm">Back</a>
+                    </div>
+                </div>
+
+                <div class="response-card mb-4">
+                    <h5 class="mb-3">Your Input</h5>
+                    <div class="user-input-box">{{ user_input }}</div>
+                </div>
+
+                <div class="response-card mb-4">
+                    <h5 class="mb-3">Generated Response</h5>
+                    <div class="result-text">{{ response }}</div>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row gap-3 align-items-start">
+                    <form action="/feedback" method="POST" class="d-flex gap-2 flex-wrap">
+                        <input type="hidden" name="feature" value="{{ prompt }}">
+                        <button name="feedback" value="Yes" class="btn btn-success">👍 Yes</button>
+                        <button name="feedback" value="No" class="btn btn-danger">👎 No</button>
+                    </form>
+                    <a href="{{ url_for('download', response=response) }}" class="btn btn-primary">Download PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

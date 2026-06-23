@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass-card p-5">
+                <h2 class="mb-4">❓ Smart Question Answering</h2>
+
+                <p class="text-muted mb-4">
+                    Ask any question and choose how the AI should answer.
+                </p>
+
+                <form id="qaForm" class="mb-5">
+
+                    <label class="form-label fw-600">
+                        Enter Question
+                    </label>
+
+                    <textarea
+                        id="qa-input"
+                        name="question"
+                        class="form-control"
+                        rows="4"
+                        required>
+                    </textarea>
+
+                    <br>
+
+                    <button type="button" class="btn btn-outline-primary mb-3" onclick="startListening('qa-input')">
+                        🎙️ Voice Input
+                    </button>
+
+                    <br>
+
+                    <label class="form-label fw-600">
+                        Select Prompt Style
+                    </label>
+
+                    <select
+                        name="mode"
+                        class="form-select">
+
+                        <option value="beginner">
+                            Beginner Explanation
+                        </option>
+
+                        <option value="technical">
+                            Technical Explanation
+                        </option>
+
+                        <option value="exam">
+                            Exam Answer
+                        </option>
+
+                    </select>
+
+                    <br>
+
+                    <button type="submit" class="btn btn-primary" id="generateBtn">
+                        ✨ Generate Response
+                    </button>
+
+                </form>
+
+                <div id="responseContainer" class="response-section" style="display: none;">
+                    <hr class="my-4">
+                    <h3 class="mb-4" style="color: #4d8eff;">💡 Response</h3>
+                    
+                    <div class="response-card mb-4">
+                        <h6 class="mb-3" style="color: #adc6ff; font-weight: 600;">📝 Your Question</h6>
+                        <div class="user-input-box" id="userInputDisplay"></div>
+                    </div>
+
+                    <div class="response-card mb-4">
+                        <h6 class="mb-3" style="color: #adc6ff; font-weight: 600;">✨ AI Response</h6>
+                        <div class="result-text" id="responseDisplay"></div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row gap-3 align-items-start mb-4">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button name="feedback" value="Yes" type="button" class="btn btn-success" onclick="submitFeedback('Yes')">👍 Helpful</button>
+                            <button name="feedback" value="No" type="button" class="btn btn-danger" onclick="submitFeedback('No')">👎 Not Helpful</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="downloadBtn">
+                            📥 Download PDF
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="clearAndContinue()">
+                            🔄 Ask Another Question
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('qaForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const question = document.getElementById('qa-input').value;
+    const mode = document.querySelector('select[name="mode"]').value;
+    const btn = document.getElementById('generateBtn');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating...';
+
+    try {
+        const formData = new FormData();
+        formData.append('question', question);
+        formData.append('mode', mode);
+
+        const response = await fetch('/qa', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate response');
+        }
+
+        const data = await response.json();
+
+        document.getElementById('userInputDisplay').textContent = data.user_input;
+        document.getElementById('responseDisplay').textContent = data.response;
+        document.getElementById('downloadBtn').onclick = () => downloadPDF(data.response);
+
+        document.getElementById('responseContainer').style.display = 'block';
+        document.getElementById('responseContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Generate Response';
+    }
+});
+
+function submitFeedback(value) {
+    const feature = 'Question Answering';
+    
+    const formData = new FormData();
+    formData.append('feature', feature);
+    formData.append('feedback', value);
+
+    fetch('/feedback', {
+        method: 'POST',
+        body: formData
+    }).then(() => {
+        alert('Thank you for your feedback!');
+    }).catch(error => {
+        alert('Error submitting feedback: ' + error.message);
+    });
+}
+
+function downloadPDF(responseText) {
+    const link = document.createElement('a');
+    link.href = '{{ url_for("download") }}?response=' + encodeURIComponent(responseText);
+    link.download = 'response.pdf';
+    link.click();
+}
+
+function clearAndContinue() {
+    document.getElementById('qa-input').value = '';
+    document.getElementById('qaForm').querySelector('select[name="mode"]').value = 'beginner';
+    document.getElementById('responseContainer').style.display = 'none';
+    document.getElementById('qa-input').focus();
+}
+</script>
+
+{% endblock %}

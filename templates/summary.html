@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="glass-card p-5">
+                <h2 class="mb-4">📚 AI Notes Summarizer</h2>
+
+                <form id="summaryForm" class="mb-5" enctype="multipart/form-data">
+
+                    <label class="form-label fw-600">
+                        Enter Notes or Upload PDF
+                    </label>
+
+                    <textarea
+                        id="summary-input"
+                        name="notes"
+                        class="form-control"
+                        rows="10">
+                    </textarea>
+
+                    <br>
+
+                    <button type="button" class="btn btn-outline-primary mb-3" onclick="startListening('summary-input')">
+                        🎙️ Voice Input
+                    </button>
+
+                    <br>
+
+                    <label class="form-label fw-600">
+                        Upload PDF (Optional)
+                    </label>
+
+                    <input type="file" name="pdf_file" class="form-control" accept="application/pdf">
+
+                    <br>
+
+                    <label class="form-label fw-600">
+                        Summary Type
+                    </label>
+
+                    <select
+                        name="summary_type"
+                        class="form-select">
+
+                        <option value="short">
+                            Short Summary
+                        </option>
+
+                        <option value="keypoints">
+                            Key Points
+                        </option>
+
+                        <option value="revision">
+                            Revision Notes
+                        </option>
+
+                    </select>
+
+                    <br>
+
+                    <button type="submit" class="btn btn-primary" id="generateBtn">
+                        ✨ Generate Summary
+                    </button>
+
+                </form>
+
+                <div id="responseContainer" class="response-section" style="display: none;">
+                    <hr class="my-4">
+                    <h3 class="mb-4" style="color: #4d8eff;">💡 Summary</h3>
+                    
+                    <div class="response-card mb-4">
+                        <h6 class="mb-3" style="color: #adc6ff; font-weight: 600;">📝 Your Notes</h6>
+                        <div class="user-input-box" id="userInputDisplay"></div>
+                    </div>
+
+                    <div class="response-card mb-4">
+                        <h6 class="mb-3" style="color: #adc6ff; font-weight: 600;">✨ AI Generated Summary</h6>
+                        <div class="result-text" id="responseDisplay"></div>
+                    </div>
+
+                    <div class="d-flex flex-column flex-sm-row gap-3 align-items-start mb-4">
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button name="feedback" value="Yes" type="button" class="btn btn-success" onclick="submitFeedback('Yes')">👍 Helpful</button>
+                            <button name="feedback" value="No" type="button" class="btn btn-danger" onclick="submitFeedback('No')">👎 Not Helpful</button>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="downloadBtn">
+                            📥 Download PDF
+                        </button>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="clearAndContinue()">
+                            🔄 Summarize More Content
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('summaryForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const notes = document.getElementById('summary-input').value;
+    const pdfFile = document.querySelector('input[name="pdf_file"]').files[0];
+    const summaryType = document.querySelector('select[name="summary_type"]').value;
+    const btn = document.getElementById('generateBtn');
+
+    if (!notes && !pdfFile) {
+        alert('Please enter notes or upload a PDF file.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Generating...';
+
+    try {
+        const formData = new FormData();
+        formData.append('notes', notes);
+        formData.append('pdf_file', pdfFile);
+        formData.append('summary_type', summaryType);
+
+        const response = await fetch('/summary', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to generate summary');
+        }
+
+        const data = await response.json();
+
+        document.getElementById('userInputDisplay').textContent = data.user_input.substring(0, 200) + '...';
+        document.getElementById('responseDisplay').textContent = data.response;
+        document.getElementById('downloadBtn').onclick = () => downloadPDF(data.response);
+
+        document.getElementById('responseContainer').style.display = 'block';
+        document.getElementById('responseContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ Generate Summary';
+    }
+});
+
+function submitFeedback(value) {
+    const feature = 'Summarizer';
+    
+    const formData = new FormData();
+    formData.append('feature', feature);
+    formData.append('feedback', value);
+
+    fetch('/feedback', {
+        method: 'POST',
+        body: formData
+    }).then(() => {
+        alert('Thank you for your feedback!');
+    }).catch(error => {
+        alert('Error submitting feedback: ' + error.message);
+    });
+}
+
+function downloadPDF(responseText) {
+    const link = document.createElement('a');
+    link.href = '{{ url_for("download") }}?response=' + encodeURIComponent(responseText);
+    link.download = 'summary.pdf';
+    link.click();
+}
+
+function clearAndContinue() {
+    document.getElementById('summary-input').value = '';
+    document.querySelector('input[name="pdf_file"]').value = '';
+    document.querySelector('select[name="summary_type"]').value = 'short';
+    document.getElementById('responseContainer').style.display = 'none';
+    document.getElementById('summary-input').focus();
+}
+</script>
+
+{% endblock %}

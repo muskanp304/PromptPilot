@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="dashboard-container">
+
+    <!-- Header -->
+
+    <div class="dashboard-header">
+
+        <div>
+            <h1>📊 Analytics Dashboard</h1>
+            <p>
+                Comprehensive insights into AI performance and user engagement.
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- Metrics -->
+
+    <div class="row g-4">
+
+        <div class="col-md-3">
+            <div class="glass-card metric-card">
+                <h6>Total Chats</h6>
+                <h1>{{ total_chats }}</h1>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card metric-card">
+                <h6>Total Prompts</h6>
+                <h1>{{ total_prompts }}</h1>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card metric-card">
+                <h6>Total Feedback</h6>
+                <h1>{{ total_feedback }}</h1>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="glass-card metric-card">
+                <h6>Positive Feedback</h6>
+                <h1>{{ positive_percentage }}%</h1>
+            </div>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="row g-4">
+
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5>📈 Total Chats by Feature</h5>
+                <canvas id="featureChart" height="240"></canvas>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5>📝 Feedback Distribution</h5>
+                <canvas id="feedbackChart" height="240"></canvas>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="glass-card p-4 h-100">
+                <h5>📅 Daily Usage Trend</h5>
+                <canvas id="dailyChart" height="240"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="row g-4">
+
+        <!-- Most Used Feature -->
+
+        <div class="col-lg-4">
+
+            <div class="glass-card p-5 h-100">
+
+                <h5>
+                    ⭐ Most Used Feature
+                </h5>
+
+                {% if most_used %}
+
+                <h2 class="mt-4">
+                    {{ most_used[0] }}
+                </h2>
+
+                <h4 class="text-primary">
+                    {{ most_used[1] }} Uses
+                </h4>
+
+                {% else %}
+
+                <p>No data available.</p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        <!-- Recent Activities -->
+
+        <div class="col-lg-8">
+
+            <div class="glass-card p-4">
+
+                <h4>
+                    🕒 Recent Activities
+                </h4>
+
+                <table class="table table-dark table-hover mt-4">
+
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>User Input</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for activity in activities %}
+
+                    <tr>
+                        <td>{{ activity[0] }}</td>
+                        <td>{{ activity[1] }}</td>
+                        <td>{{ activity[2] }}</td>
+                    </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const featureLabels = {{ feature_labels|tojson }};
+    const featureValues = {{ feature_values|tojson }};
+    const feedbackLabels = {{ feedback_labels|tojson }};
+    const feedbackValues = {{ feedback_values|tojson }};
+    const dailyLabels = {{ daily_labels|tojson }};
+    const dailyValues = {{ daily_values|tojson }};
+
+    new Chart(document.getElementById('featureChart'), {
+        type: 'bar',
+        data: {
+            labels: featureLabels,
+            datasets: [{
+                label: 'Total Chats',
+                data: featureValues,
+                backgroundColor: 'rgba(77, 142, 255, 0.8)',
+                borderColor: 'rgba(77, 142, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#e1e2ec'
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.08)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#e1e2ec'
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.08)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#e1e2ec'
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('feedbackChart'), {
+        type: 'pie',
+        data: {
+            labels: feedbackLabels,
+            datasets: [{
+                data: feedbackValues,
+                backgroundColor: [
+                    'rgba(77, 142, 255, 0.8)',
+                    'rgba(123, 97, 255, 0.8)',
+                    'rgba(255, 123, 123, 0.8)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#e1e2ec'
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('dailyChart'), {
+        type: 'line',
+        data: {
+            labels: dailyLabels,
+            datasets: [{
+                label: 'Daily Prompts',
+                data: dailyValues,
+                borderColor: 'rgba(123, 97, 255, 1)',
+                backgroundColor: 'rgba(123, 97, 255, 0.15)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: 'rgba(255, 255, 255, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#e1e2ec'
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.08)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#e1e2ec'
+                    },
+                    grid: {
+                        color: 'rgba(255,255,255,0.08)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#e1e2ec'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}
