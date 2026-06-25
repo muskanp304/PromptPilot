@@ -1,20 +1,10 @@
 import sqlite3
-
-
 DATABASE = "database/database.db"
-
-
-# ===========================
-# Database Connection
-# ===========================
 
 def get_connection():
     return sqlite3.connect(DATABASE)
 
-
-# ===========================
 # Prompt History Table
-# ===========================
 
 def create_prompt_history_table():
 
@@ -34,10 +24,7 @@ def create_prompt_history_table():
     conn.commit()
     conn.close()
 
-
-# ===========================
 # Chat History Table
-# ===========================
 
 def create_chat_table():
 
@@ -57,10 +44,7 @@ def create_chat_table():
     conn.commit()
     conn.close()
 
-
-# ===========================
 # Feedback Table
-# ===========================
 
 def create_feedback_table():
 
@@ -79,10 +63,7 @@ def create_feedback_table():
     conn.commit()
     conn.close()
 
-
-# ===========================
 # Initialize Database
-# ===========================
 
 def initialize_database():
 
@@ -90,10 +71,7 @@ def initialize_database():
     create_chat_table()
     create_feedback_table()
 
-
-# ===========================
 # Save Prompt History
-# ===========================
 
 def save_prompt_history(
         feature,
@@ -122,9 +100,7 @@ def save_prompt_history(
     conn.close()
 
 
-# ===========================
 # Get Prompt History
-# ===========================
 
 def get_prompt_history():
 
@@ -144,9 +120,7 @@ def get_prompt_history():
     return rows
 
 
-# ===========================
 # Save Chat
-# ===========================
 
 def save_chat(
         feature,
@@ -174,10 +148,8 @@ def save_chat(
     conn.commit()
     conn.close()
 
-
-# ===========================
 # Get Chat History
-# ===========================
+
 
 def get_chat_history():
 
@@ -197,9 +169,7 @@ def get_chat_history():
     return rows
 
 
-# ===========================
 # Save Feedback
-# ===========================
 
 def save_feedback(
         feature,
@@ -225,9 +195,7 @@ def save_feedback(
     conn.close()
 
 
-# ===========================
 # Get Feedback
-# ===========================
 
 def get_feedback():
 
@@ -246,10 +214,7 @@ def get_feedback():
 
     return rows
 
-
-# ===========================
 # Dashboard Statistics
-# ===========================
 
 def create_users_table():
 
